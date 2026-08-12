@@ -1,0 +1,39 @@
+postgresql:
+  enabled: false
+
+authentik:
+  secret_key: "${secret_key}"
+  postgresql:
+    host: "${postgres_host}"
+    name: "${postgres_db}"
+    user: "${postgres_user}"
+    password: "${postgres_password}"
+
+global:
+  env:
+    - name: AUTHENTIK_BOOTSTRAP_EMAIL
+      valueFrom:
+        secretKeyRef:
+          name: ${bootstrap_secret_name}
+          key: AUTHENTIK_BOOTSTRAP_EMAIL
+    - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: ${bootstrap_secret_name}
+          key: AUTHENTIK_BOOTSTRAP_PASSWORD
+    - name: AUTHENTIK_BOOTSTRAP_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: ${bootstrap_secret_name}
+          key: AUTHENTIK_BOOTSTRAP_TOKEN
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - ${hostname}
+    tls:
+      - hosts:
+          - ${hostname}
+        secretName: ${ingress_tls_secret_name}

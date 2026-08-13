@@ -24,11 +24,14 @@ resource "authentik_user" "cluster" {
 
 # No provider resource for generating recovery links, so this POSTs to the
 # REST API directly; re-running `tofu apply` mints a fresh link each time.
+# Requires the default brand's recovery flow to be set, or this API call 404s.
 data "http" "user_recovery_link" {
   for_each = authentik_user.cluster
 
   url    = "${local.authentik_api_url}/api/v3/core/users/${each.value.id}/recovery/"
   method = "POST"
+
+  depends_on = [authentik_brand.default]
 
   request_headers = {
     Authorization = "Bearer ${random_password.authentik_bootstrap_token.result}"

@@ -3,21 +3,27 @@ resource "authentik_blueprint" "recovery_flow" {
   content = file("${path.module}/../blueprints/recovery-flow.yaml")
 }
 
-# Applying a blueprint just updates the blueprint instance record , Authentik
-# processes its actual content (creating the flow/stage objects) in a
-# background task, not synchronously as part of that API call. Without this
-# wait, the data source below can run before that background task finishes
-# and find nothing, even though depends_on already waited for the blueprint
-# resource itself to report done.
-resource "time_sleep" "recovery_flow_blueprint" {
-  depends_on      = [authentik_blueprint.recovery_flow]
-  create_duration = "15s"
+# The provider's create/update just PUTs the blueprint instance's content ,
+# it never actually applies it (confirmed: no flow/stage gets created, no
+# background task runs). Authentik has a separate apply endpoint for that,
+# same POST-with-side-effect pattern users.tf already uses for recovery links.
+data "http" "recovery_flow_apply" {
+  url      = "${local.authentik_api_url}/api/v3/managed/blueprints/${authentik_blueprint.recovery_flow.id}/apply/"
+  method   = "POST"
+  insecure = true
+
+  depends_on = [authentik_blueprint.recovery_flow]
+
+  request_headers = {
+    Authorization = "Bearer ${random_password.authentik_bootstrap_token.result}"
+    Accept        = "application/json"
+  }
 }
 
 data "authentik_flow" "recovery" {
   slug = "default-recovery-flow"
 
-  depends_on = [time_sleep.recovery_flow_blueprint]
+  depends_on = [data.http.recovery_flow_apply]
 }
 
 resource "authentik_brand" "default" {

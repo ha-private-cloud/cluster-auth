@@ -35,7 +35,7 @@ resource "helm_release" "authentik" {
   namespace  = kubernetes_namespace.cluster_auth.metadata[0].name
 
   values = [
-    templatefile("${path.module}/values/authentik.yaml.tftpl", {
+    templatefile("${path.module}/../values/authentik.yaml.tftpl", {
       secret_key              = random_password.authentik_secret_key.result
       postgres_host           = "${kubernetes_service.postgres.metadata[0].name}.${kubernetes_namespace.cluster_auth.metadata[0].name}.svc.cluster.local"
       postgres_db             = "authentik"

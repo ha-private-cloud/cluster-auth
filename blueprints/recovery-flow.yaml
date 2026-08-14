@@ -1,4 +1,4 @@
-# Custom (not upstream) — deliberately does NOT reuse Authentik's official
+# Custom (not upstream) , deliberately does NOT reuse Authentik's official
 # example because that flow routes through identification + a real email send
 # before letting the user set a password, which doesn't work without SMTP.
 version: 1

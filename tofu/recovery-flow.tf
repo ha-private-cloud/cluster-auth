@@ -1,6 +1,6 @@
 resource "authentik_blueprint" "recovery_flow" {
   name    = "recovery-flow"
-  content = file("${path.module}/blueprints/recovery-flow.yaml")
+  content = file("${path.module}/../blueprints/recovery-flow.yaml")
 }
 
 data "authentik_flow" "recovery" {

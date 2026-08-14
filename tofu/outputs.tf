@@ -27,7 +27,7 @@ output "headlamp_oidc_client_secret" {
 }
 
 output "authentik_ingress_ca_cert_pem" {
-  description = "Self-signed cert for auth.talos.lab (it's its own CA) — feed this into proxmox-tofu/talos-oidc-patch.yaml's oidc-ca-file."
+  description = "Self-signed cert for auth.talos.lab (it's its own CA) , feed this into proxmox-tofu/talos-oidc-patch.yaml's oidc-ca-file."
   value       = tls_self_signed_cert.authentik_ingress.cert_pem
 }
 

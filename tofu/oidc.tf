@@ -36,7 +36,7 @@ resource "authentik_provider_oauth2" "headlamp" {
   property_mappings  = data.authentik_property_mapping_provider_scope.headlamp_scopes.ids
 
   # grant_types is "computed", so omitting it disables authorization_code/refresh_token
-  # rather than allowing everything like the other list attributes here — must be set explicitly.
+  # rather than allowing everything like the other list attributes here , must be set explicitly.
   grant_types = ["authorization_code", "refresh_token"]
   signing_key = data.authentik_certificate_key_pair.self_signed.id
 

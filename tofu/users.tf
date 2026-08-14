@@ -8,11 +8,11 @@ data "terraform_remote_state" "cluster_rbac" {
   backend = "local"
 
   config = {
-    path = "${path.module}/../cluster-rbac/terraform.tfstate"
+    path = "${path.module}/../../cluster-rbac/tofu/terraform.tfstate"
   }
 }
 
-# No password set — account can't log in until the recovery link below is used to set one.
+# No password set , account can't log in until the recovery link below is used to set one.
 resource "authentik_user" "cluster" {
   for_each = toset(data.terraform_remote_state.cluster_rbac.outputs.usernames)
 

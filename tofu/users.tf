@@ -1,7 +1,7 @@
 # Same URL the "authentik" provider uses (see provider.tf); the http data
 # source below needs it directly since recovery links have no provider resource.
 locals {
-  authentik_api_url = "http://localhost:9080"
+  authentik_api_url = "https://auth.talos.lab"
 }
 
 data "terraform_remote_state" "cluster_rbac" {
@@ -28,8 +28,9 @@ resource "authentik_user" "cluster" {
 data "http" "user_recovery_link" {
   for_each = authentik_user.cluster
 
-  url    = "${local.authentik_api_url}/api/v3/core/users/${each.value.id}/recovery/"
-  method = "POST"
+  url      = "${local.authentik_api_url}/api/v3/core/users/${each.value.id}/recovery/"
+  method   = "POST"
+  insecure = true
 
   depends_on = [authentik_brand.default]
 

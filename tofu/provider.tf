@@ -8,9 +8,12 @@ provider "helm" {
   }
 }
 
-# Requires `kubectl port-forward -n cluster-auth svc/authentik-server 9080:80`
-# running locally. Token is created in authentik.tf.
+# Talks to the real auth.talos.lab ingress (self-signed cert issued for
+# that exact hostname, see tls.tf) rather than a kubectl port-forward , so
+# this works unattended from the CI bastion, not just an interactive
+# workstation session. Token is created in authentik.tf.
 provider "authentik" {
-  url   = "http://localhost:9080"
-  token = random_password.authentik_bootstrap_token.result
+  url      = "https://auth.talos.lab"
+  insecure = true
+  token    = random_password.authentik_bootstrap_token.result
 }

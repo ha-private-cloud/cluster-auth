@@ -36,7 +36,10 @@ output "user_recovery_links" {
   value = {
     for username, resp in data.http.user_recovery_link :
     # Swap the port-forward host Authentik used to build the link for the real external hostname.
-    username => replace(jsondecode(resp.response_body).link, local.authentik_api_url, "https://${var.authentik_hostname}")
+    username => try(
+      replace(jsondecode(resp.response_body).link, local.authentik_api_url, "https://${var.authentik_hostname}"),
+      null
+    )
   }
   sensitive = true
 }

@@ -3,10 +3,21 @@ resource "authentik_blueprint" "recovery_flow" {
   content = file("${path.module}/../blueprints/recovery-flow.yaml")
 }
 
+# Applying a blueprint just updates the blueprint instance record , Authentik
+# processes its actual content (creating the flow/stage objects) in a
+# background task, not synchronously as part of that API call. Without this
+# wait, the data source below can run before that background task finishes
+# and find nothing, even though depends_on already waited for the blueprint
+# resource itself to report done.
+resource "time_sleep" "recovery_flow_blueprint" {
+  depends_on      = [authentik_blueprint.recovery_flow]
+  create_duration = "15s"
+}
+
 data "authentik_flow" "recovery" {
   slug = "default-recovery-flow"
 
-  depends_on = [authentik_blueprint.recovery_flow]
+  depends_on = [time_sleep.recovery_flow_blueprint]
 }
 
 resource "authentik_brand" "default" {

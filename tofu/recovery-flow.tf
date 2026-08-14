@@ -12,18 +12,29 @@ data "http" "recovery_flow_apply" {
   method   = "POST"
   insecure = true
 
-  depends_on = [authentik_blueprint.recovery_flow]
-
   request_headers = {
     Authorization = "Bearer ${random_password.authentik_bootstrap_token.result}"
     Accept        = "application/json"
   }
 }
 
+# The apply endpoint itself only enqueues a background task (confirmed via
+# authentik-worker logs: authentik.blueprints.v1.tasks.apply_blueprint runs
+# async, ~0.4s in practice) , this waits past that before the flow lookup
+# below. `triggers` holds a real reference to the POST's response, not just
+# depends_on, so evaluation order is an actual data dependency rather than
+# a hint (a plain depends_on here silently failed to run the POST at all).
+resource "time_sleep" "recovery_flow_apply" {
+  create_duration = "10s"
+  triggers = {
+    apply_status = data.http.recovery_flow_apply.status_code
+  }
+}
+
 data "authentik_flow" "recovery" {
   slug = "default-recovery-flow"
 
-  depends_on = [data.http.recovery_flow_apply]
+  depends_on = [time_sleep.recovery_flow_apply]
 }
 
 resource "authentik_brand" "default" {

@@ -1,7 +1,7 @@
 # Same URL the "authentik" provider uses (see provider.tf); the http data
 # source below needs it directly since recovery links have no provider resource.
 locals {
-  authentik_api_url = "https://auth.talos.lab"
+  authentik_api_url = "https://auth.clusterkeep.dev.net"
 }
 
 data "terraform_remote_state" "cluster_rbac" {

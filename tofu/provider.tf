@@ -13,7 +13,7 @@ provider "helm" {
 # this works unattended from the CI bastion, not just an interactive
 # workstation session. Token is created in authentik.tf.
 provider "authentik" {
-  url      = "https://auth.talos.lab"
+  url      = "https://auth.clusterkeep.dev.net"
   insecure = true
   token    = random_password.authentik_bootstrap_token.result
 }

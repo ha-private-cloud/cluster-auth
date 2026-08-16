@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "WebFetch(domain:www.whois.com)",
-      "WebFetch(domain:rdap.verisign.com)"
-    ]
-  }
-}

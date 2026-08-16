@@ -31,13 +31,13 @@ variable "authentik_chart_version" {
 variable "authentik_hostname" {
   description = "Hostname the Authentik UI will be served on via Ingress. Add this to your workstation's /etc/hosts pointing at a worker node IP, same as Headlamp."
   type        = string
-  default     = "auth.talos.lab"
+  default     = "auth.clusterkeep.dev.net"
 }
 
 variable "headlamp_hostname" {
   description = "Headlamp's Ingress hostname, as configured in cluster-config (used to register its OIDC redirect URI in Authentik)."
   type        = string
-  default     = "headlamp.talos.lab"
+  default     = "headlamp.clusterkeep.dev.net"
 }
 
 variable "authentik_bootstrap_email" {

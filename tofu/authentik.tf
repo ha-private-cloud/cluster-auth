@@ -43,7 +43,7 @@ resource "helm_release" "authentik" {
       postgres_password       = random_password.postgres.result
       bootstrap_secret_name   = kubernetes_secret.authentik_bootstrap.metadata[0].name
       hostname                = var.authentik_hostname
-      ingress_tls_secret_name = kubernetes_secret.authentik_ingress_tls.metadata[0].name
+      ingress_tls_secret_name = var.ingress_tls_secret_name
     })
   ]
 

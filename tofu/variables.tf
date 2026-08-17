@@ -45,3 +45,9 @@ variable "authentik_bootstrap_email" {
   type        = string
   default     = "admin@talos.lab"
 }
+
+variable "ingress_tls_secret_name" {
+  description = "TLS secret serving the Authentik ingress. Must be signed by the CA in the apiserver's oidc-ca-file, or OIDC token validation fails."
+  type        = string
+  default     = "clusterkeep-tls"
+}

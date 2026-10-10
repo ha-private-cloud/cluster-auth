@@ -4,50 +4,32 @@ variable "kubeconfig_path" {
   default     = "../../proxmox-tofu/_out/kubeconfig"
 }
 
-variable "namespace" {
-  description = "Namespace for Postgres, Authentik, and related resources."
+variable "auth_api_namespace" {
+  description = "Namespace of the auth-api instance that cluster logins use (its prd workspace)."
   type        = string
-  default     = "cluster-auth"
+  default     = "auth-prd-pub"
 }
 
-variable "postgres_image" {
-  description = "Postgres container image."
+variable "auth_api_deployment" {
+  description = "auth-api Deployment name, restarted when the Secret changes so it picks the new value up."
   type        = string
-  default     = "postgres:16"
+  default     = "auth-api"
 }
 
-variable "postgres_storage_size" {
-  description = "Size of the PVC backing Postgres's data directory."
+variable "auth_api_issuer_url" {
+  description = "auth-api's issuer URL. Must match the issuer the apiserver trusts in proxmox-tofu/talos-auth-api-patch.yaml exactly."
   type        = string
-  default     = "10Gi"
+  default     = "https://auth.clusterkeep.com"
 }
 
-variable "authentik_chart_version" {
-  description = "Version of the goauthentik/authentik Helm chart to install."
+variable "identity_secret_name" {
+  description = "Secret auth-api loads the Headlamp client secret from. Must match auth-api's cluster_identity_secret_name."
   type        = string
-  default     = "2026.5.6"
+  default     = "cluster-identity"
 }
 
-variable "authentik_hostname" {
-  description = "Hostname the Authentik UI will be served on via Ingress. Add this to your workstation's /etc/hosts pointing at a worker node IP, same as Headlamp."
+variable "oidc_groups_prefix" {
+  description = "Prefix the apiserver adds to the groups claim. Must match claimMappings.groups.prefix in proxmox-tofu/talos-auth-api-patch.yaml exactly."
   type        = string
-  default     = "auth.clusterkeep.dev.net"
-}
-
-variable "headlamp_hostname" {
-  description = "Headlamp's Ingress hostname, as configured in cluster-config (used to register its OIDC redirect URI in Authentik)."
-  type        = string
-  default     = "headlamp.clusterkeep.dev.net"
-}
-
-variable "authentik_bootstrap_email" {
-  description = "Email for the initial Authentik admin account (created via bootstrap env vars on first start)."
-  type        = string
-  default     = "admin@talos.lab"
-}
-
-variable "ingress_tls_secret_name" {
-  description = "TLS secret serving the Authentik ingress. Must be signed by the CA in the apiserver's oidc-ca-file, or OIDC token validation fails."
-  type        = string
-  default     = "clusterkeep-tls"
+  default     = "oidc:"
 }

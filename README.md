@@ -1,82 +1,26 @@
 # cluster-auth
 
-Username/password login for the cluster, replacing Headlamp's bearer-token
-login. Installs, via OpenTofu, into the Talos cluster provisioned in
-`proxmox-tofu`:
+Who can get into the Talos cluster. People sign in to Headlamp and the Kubernetes API with their ClusterKeep account from auth-api, and this repo decides what each group can do. It used to install Authentik, which has been retired.
 
-- **Postgres** on the `nfs-csi` StorageClass
-  from `cluster-config`.
-- **Authentik** , OIDC identity provider, backed by the Postgres above,
-  exposed at `https://auth.talos.lab` through the existing ingress-nginx.
-- An OAuth2 provider + application for Headlamp, created declaratively via
-  the `goauthentik/authentik` Terraform provider.
+## What it creates
 
-Headlamp itself only speaks OIDC or bearer tokens (no native username/
-password support), which is why Authentik sits in front of it.
+- A ClusterRoleBinding for each cluster group in auth-api:
 
-## Prerequisites
+  | auth-api group | Kubernetes role |
+  |---|---|
+  | `cluster-admins` | `cluster-admin` |
+  | `cluster-editors` | `edit` |
+  | `cluster-viewers` | `view` |
 
-- `tofu` (OpenTofu)
-- A working kubeconfig from the cluster bootstrap
-- `cluster-config` already applied
+- Headlamp's client secret, written into the `cluster-identity` Secret in auth-api's production namespace. auth-api registers Headlamp with it when it starts, and this repo restarts auth-api whenever the secret changes.
+- Headlamp's client settings as outputs, which `cluster-config` reads when it installs Headlamp.
 
-## Usage
+The Kubernetes API only trusts auth-api once the Talos patch in `proxmox-tofu` is applied to every control plane. Group names reach Kubernetes with an `oidc:` prefix, set by `oidc_groups_prefix`, and that prefix must match the patch. Without it, auth-api could hand someone a built-in group such as `system:masters`.
 
-All `.tf` files live under `tofu/` , run OpenTofu from inside it, not the
-repo root:
-```bash
-cd tofu
-```
+## Giving someone access
 
-Add this to your tfvars, pointing to your kubeconfig:
-```bash
-kubeconfig_path = ""
-```
+Use the Cluster access setting in admin-ui. Only members of `cluster-admins` can change it, and nobody can change their own. The bootstrap `admin` account in auth-api is a cluster admin, so there's always a way back in.
 
-The `authentik` provider talks to Authentik's API directly.
+## Using it
 
-```bash
-export KUBECONFIG=../../proxmox-tofu/_out/kubeconfig
-kubectl port-forward -n cluster-auth svc/authentik-server 9080:80
-```
-
-Then:
-
-```bash
-tofu plan
-tofu apply
-```
-
-On a from-scratch apply, Postgres and Authentik need to exist before the
-`authentik` provider can reach anything , if you run everything in one
-shot and the OIDC resources fail because Authentik isn't up yet, just
-re-run `tofu apply` once Authentik's pods are `Running`.
-
-## Accessing Authentik
-
-1. Add to `/etc/hosts` (same pattern as Headlamp):
-
-   ```
-   192.168.0.16  auth.talos.lab
-   ```
-
-2. Browse to `https://auth.talos.lab` , self-signed cert warning expected
-3. Log in with the bootstrap admin account (from `tofu/`):
-
-   ```bash
-   export KUBECONFIG=../../proxmox-tofu/_out/kubeconfig
-   tofu output authentik_bootstrap_email
-   tofu output -raw authentik_bootstrap_password
-   ```
-
-## Notes
-
-- All generated credentials (Postgres password, Authentik `secret_key`,
-  bootstrap admin password/token, Headlamp's OIDC client secret) are Tofu
-  `random_password` resources, stored in this repo's state and as
-  Kubernetes Secrets in the `cluster-auth` namespace , never hardcoded.
-- The bootstrap API token (`AUTHENTIK_BOOTSTRAP_TOKEN`) is what the
-  `authentik` provider authenticates with. It's tied to the initial
-  `akadmin` account; if you rotate it, update `provider.tf`'s expectations
-  accordingly.
-- Wiring Headlamp itself to this OIDC provider happens in `cluster-config`.
+All the OpenTofu files are in `tofu/`, and the tfvars on the CI bastion only need the kubeconfig path. Pushing a `vX.Y.Z` tag plans the change through the shared `pipelines` workflow, and applying it is a manual run of that workflow. Apply this before `cluster-config`, because Headlamp's settings come from here.
